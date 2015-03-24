@@ -61,9 +61,57 @@ void test()
 }
 
 
+void test2()
+{
+    // Create dataset
+    uword n_observations = 100000;
+    uword n_features = 50;
+    mat data = randn(n_observations, n_features);
+    cout << "Created random dataset" << endl;
+    
+    
+    // Create LSH using half the data
+    uint32_t n_tables = log(log(n_observations));
+    uint32_t n_bits = 32;
+    auto start = chrono::steady_clock::now();
+    LSH lsh_table(n_tables, n_bits);
+    lsh_table.initialize(data.rows(0, 30));
+    auto end = chrono::steady_clock::now();
+    cout << "Created LSH table with " << n_tables << " tables and " << n_bits << " bits per table in " << double((end-start).count())/double(chrono::steady_clock::period::den) << " seconds" << endl;
+    
+    // Add the other half one at a time
+    for (auto row_i = 31 ; row_i < n_observations; row_i++)
+    {
+        lsh_table.insert(data.rows(row_i, row_i));
+    }
+    
+    // Test it by querying every row
+    size_t n_correct = 0;
+    double avg_time = 0;
+    for (auto row_i = 0; row_i < n_observations; row_i++)
+    {
+        auto start = chrono::steady_clock::now();
+        
+        vector<size_t> nnidxs;
+        vector<double> dists;
+        
+        lsh_table.knn(data.row(row_i), dists, nnidxs);
+        
+        auto end = chrono::steady_clock::now();
+        if (nnidxs[0] == row_i) {
+            n_correct++;
+        }
+        avg_time += double((end-start).count())/double(chrono::steady_clock::period::den);
+    }
+    
+    // Report results
+    cout << n_correct << "/" << n_observations << " (" << n_correct / (double)n_observations * 100.0 << " %) correct using " << avg_time / (double)n_observations << " seconds per observation" << endl;
+}
+
+
 int main(int argc, const char * argv[]) {
     
-    test();
+    test2();
     
     return 0;
 }

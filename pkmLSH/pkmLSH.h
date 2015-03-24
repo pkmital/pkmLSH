@@ -100,14 +100,14 @@
 #pragma once
 
 #include <iostream>
-#include <cstdint>
+#include <stdint.h>
 #include <vector>
 #include <set>
 #include <algorithm>
-#include <unordered_map>
+#include <map>
 #include <cmath>
+#include <unordered_map>
 #include <armadillo>
-
 
 using namespace std;
 using namespace arma;
@@ -177,7 +177,7 @@ namespace pkm
             const vector<size_t> neighbors = query(p);
             vector<size_t> range(neighbors.size());
             vector<size_t> new_neighbors(neighbors.size());
-            rowvec dists(neighbors.size());
+            vector<double> dists(neighbors.size());
             for (size_t neighbor_i = 0; neighbor_i < neighbors.size(); ++neighbor_i)
             {
                 range[neighbor_i] = neighbor_i;
@@ -191,6 +191,42 @@ namespace pkm
             }
             return new_neighbors;
         }
+        
+        /*!
+         Use LSH to find nearest indices to p
+         @param p - The data to query
+         */
+        void knn(const rowvec& p, vector<double>& dists, vector<size_t>& nearest_neighbors)
+        {
+            const vector<size_t> neighbors = query(p);
+            vector<size_t> range(neighbors.size());
+            
+            nearest_neighbors.resize(neighbors.size());
+            dists.resize(neighbors.size());
+            
+            for (size_t neighbor_i = 0; neighbor_i < neighbors.size(); ++neighbor_i)
+            {
+                range[neighbor_i] = neighbor_i;
+                const rowvec diff = p - original_data[neighbors[neighbor_i]];
+                dists[neighbor_i] = -dot(diff,diff);
+            }
+            sortIndices(dists, range);
+            for (size_t neighbor_i = 0; neighbor_i < neighbors.size(); ++neighbor_i)
+            {
+                nearest_neighbors[neighbor_i] = neighbors[range[neighbor_i]];
+            }
+        }
+        
+        
+        void insert(const rowvec& data)
+        {
+            const vector<uint64_t> hash_values = getHashes(data);
+            for (size_t table_i = 0; table_i < this->n_total_hash_tables; ++table_i) {
+                map_hashes[table_i].insert(make_pair(hash_values[table_i], original_data.size()));
+            }
+            original_data.push_back(data);
+        }
+        
         
     protected:
         
@@ -273,14 +309,6 @@ namespace pkm
         }
         
         
-        void insert(const rowvec& data)
-        {
-            const vector<uint64_t> hash_values = getHashes(data);
-            for (size_t table_i = 0; table_i < this->n_total_hash_tables; ++table_i) {
-                map_hashes[table_i].insert(make_pair(hash_values[table_i], original_data.size()));
-            }
-            original_data.push_back(data);
-        }
         
         
         /*!
@@ -316,16 +344,16 @@ namespace pkm
         unsigned int n_total_hash_tables;                       //!< how many different hash tables
         unsigned int n_total_bits;                              //!< number of hashes per table
         
-        vector<vector<size_t>> hashes;
+        vector<vector<size_t> > hashes;
         vector<rowvec> original_data;
         rowvec means;
-        vector<unordered_map<uint64_t,size_t>> map_hashes;
+        vector<unordered_map<uint64_t,size_t> > map_hashes;
         vector<size_t> prehash;
         
         bool b_initialized;                                     //!< has the database been initialized with data
         
     private:
-        void sortIndices(const rowvec& sortBy, vector<size_t>& indices) {
+        void sortIndices(const vector<double>& sortBy, vector<size_t>& indices) {
             for (size_t idx_i = 0; idx_i < indices.size(); ++idx_i) {
                 indices[idx_i] = idx_i;
             }

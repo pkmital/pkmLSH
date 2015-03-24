@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		89268F291ABB962800857A1C /* pkmLSH.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 89268F271ABB962800857A1C /* pkmLSH.cpp */; };
-		892690D71ABB97F700857A1C /* libarmadillo.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 892690D41ABB978E00857A1C /* libarmadillo.dylib */; };
+		892690D71ABB97F700857A1C /* libarmadillo.4.65.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 892690D41ABB978E00857A1C /* libarmadillo.4.65.3.dylib */; };
 		89A450C81AB627DD00D2EC38 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 89A450C71AB627DD00D2EC38 /* main.cpp */; };
 /* End PBXBuildFile section */
 
@@ -462,7 +462,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				892690D71ABB97F700857A1C /* libarmadillo.dylib in Frameworks */,
+				892690D71ABB97F700857A1C /* libarmadillo.4.65.3.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -905,7 +905,7 @@
 		892690CD1ABB978E00857A1C /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				892690D41ABB978E00857A1C /* libarmadillo.dylib */,
+				892690D41ABB978E00857A1C /* libarmadillo.4.65.3.dylib */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -996,10 +996,9 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		892690D41ABB978E00857A1C /* libarmadillo.dylib */ = {
+		892690D41ABB978E00857A1C /* libarmadillo.4.65.3.dylib */ = {
 			isa = PBXReferenceProxy;
 			fileType = "compiled.mach-o.dylib";
-			name = libarmadillo.dylib;
 			path = libarmadillo.4.65.3.dylib;
 			remoteRef = 892690D31ABB978E00857A1C /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
@@ -1104,6 +1103,9 @@
 		89A450CC1AB627DD00D2EC38 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				GCC_C_LANGUAGE_STANDARD = c11;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"/Users/pkmital/pkm/dev/libs/armadillo-4.650.3/install/include",
@@ -1120,6 +1122,9 @@
 		89A450CD1AB627DD00D2EC38 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				GCC_C_LANGUAGE_STANDARD = c11;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					"/Users/pkmital/pkm/dev/libs/armadillo-4.650.3/install/include",
