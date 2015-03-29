@@ -29,7 +29,7 @@ void test()
     // Create dataset
     uword n_observations = 200000;
     uword n_features = 50;
-    mat data = randn(n_observations, n_features);
+    Mat<float> data = randn<Mat<float>>(n_observations, n_features);
     cout << "Created random dataset" << endl;
     
     
@@ -37,7 +37,7 @@ void test()
     uint32_t n_tables = log(log(n_observations));
     uint32_t n_bits = 32;
     auto start = chrono::steady_clock::now();
-    LSH lsh_table(n_tables, n_bits);
+    LSH<float> lsh_table(n_tables, n_bits);
     lsh_table.initialize(data);
     auto end = chrono::steady_clock::now();
     cout << "Created LSH table with " << n_tables << " tables and " << n_bits << " bits per table in " << double((end-start).count())/double(chrono::steady_clock::period::den) << " seconds" << endl;
@@ -65,22 +65,22 @@ void test2()
 {
     // Create dataset
     uword n_observations = 100000;
-    uword n_features = 50;
-    mat data = randn(n_observations, n_features);
+    uword n_features = 128;
+    Mat<float> data = randn<Mat<float>>(n_observations, n_features);
     cout << "Created random dataset" << endl;
     
     
     // Create LSH using half the data
-    uint32_t n_tables = log(log(n_observations));
+    uint32_t n_tables = 1;
     uint32_t n_bits = 32;
     auto start = chrono::steady_clock::now();
-    LSH lsh_table(n_tables, n_bits);
-    lsh_table.initialize(data.rows(0, 30));
+    LSH<float> lsh_table(n_tables, n_bits);
+    lsh_table.initialize(data.rows(0, n_observations / 2));
     auto end = chrono::steady_clock::now();
     cout << "Created LSH table with " << n_tables << " tables and " << n_bits << " bits per table in " << double((end-start).count())/double(chrono::steady_clock::period::den) << " seconds" << endl;
     
     // Add the other half one at a time
-    for (auto row_i = 31 ; row_i < n_observations; row_i++)
+    for (auto row_i = n_observations/2 + 1 ; row_i < n_observations; row_i++)
     {
         lsh_table.insert(data.rows(row_i, row_i));
     }
@@ -93,7 +93,7 @@ void test2()
         auto start = chrono::steady_clock::now();
         
         vector<size_t> nnidxs;
-        vector<double> dists;
+        vector<float> dists;
         
         lsh_table.knn(data.row(row_i), dists, nnidxs);
         

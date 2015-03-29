@@ -77,12 +77,12 @@
  Redistribution and use in source and binary forms, with or without modification,
  are permitted provided that the following conditions are met:
  
-    Redistributions of source code must retain the above copyright notice, this
-    list of conditions and the following disclaimer.
+ Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
  
-    Redistributions in binary form must reproduce the above copyright notice, this
-    list of conditions and the following disclaimer in the documentation and/or
-    other materials provided with the distribution.
+ Redistributions in binary form must reproduce the above copyright notice, this
+ list of conditions and the following disclaimer in the documentation and/or
+ other materials provided with the distribution.
  
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -114,6 +114,7 @@ using namespace arma;
 
 namespace pkm
 {
+    template <class T>
     class LSH
     {
     public:
@@ -144,7 +145,7 @@ namespace pkm
          Initialze using a dataset
          @param mat_data - The dataset to encode
          */
-        void initialize(const mat& mat_data)
+        void initialize(const arma::Mat<T>& mat_data)
         {
             const size_t n_buckets = 65535;
             for (auto& map : map_hashes)
@@ -167,21 +168,25 @@ namespace pkm
             b_initialized = true;
         }
         
+        bool isBuilt() {
+            return b_initialized;
+        }
+        
         
         /*!
          Use LSH to find nearest indices to p
          @param p - The data to query
          */
-        vector<size_t> knn(const rowvec& p)
+        vector<size_t> knn(const arma::Row<T>& p)
         {
             const vector<size_t> neighbors = query(p);
             vector<size_t> range(neighbors.size());
             vector<size_t> new_neighbors(neighbors.size());
-            vector<double> dists(neighbors.size());
+            vector<T> dists(neighbors.size());
             for (size_t neighbor_i = 0; neighbor_i < neighbors.size(); ++neighbor_i)
             {
                 range[neighbor_i] = neighbor_i;
-                const rowvec diff = p - original_data[neighbors[neighbor_i]];
+                const Row<T> diff = p - original_data[neighbors[neighbor_i]];
                 dists[neighbor_i] = -dot(diff,diff);
             }
             sortIndices(dists, range);
@@ -196,7 +201,7 @@ namespace pkm
          Use LSH to find nearest indices to p
          @param p - The data to query
          */
-        void knn(const rowvec& p, vector<double>& dists, vector<size_t>& nearest_neighbors)
+        void knn(const arma::Row<T>& p, vector<T>& dists, vector<size_t>& nearest_neighbors)
         {
             const vector<size_t> neighbors = query(p);
             vector<size_t> range(neighbors.size());
@@ -207,7 +212,7 @@ namespace pkm
             for (size_t neighbor_i = 0; neighbor_i < neighbors.size(); ++neighbor_i)
             {
                 range[neighbor_i] = neighbor_i;
-                const rowvec diff = p - original_data[neighbors[neighbor_i]];
+                const Row<T> diff = p - original_data[neighbors[neighbor_i]];
                 dists[neighbor_i] = -dot(diff,diff);
             }
             sortIndices(dists, range);
@@ -218,7 +223,7 @@ namespace pkm
         }
         
         
-        void insert(const rowvec& data)
+        void insert(const Row<T>& data)
         {
             const vector<uint64_t> hash_values = getHashes(data);
             for (size_t table_i = 0; table_i < this->n_total_hash_tables; ++table_i) {
@@ -235,16 +240,16 @@ namespace pkm
          Takes a dataset and organizes the hashes for LSH
          @param mat_data - The dataset to encode
          */
-        void buildHashes(const mat& mat_data)
+        void buildHashes(const arma::Mat<T>& mat_data)
         {
             // per-dimension means
             means = mean(mat_data);
             
             // per-dimension variances
-            rowvec variances = var(mat_data);
+            arma::Row<T> variances = var(mat_data);
             
             // variance sums
-            double vSum = sum(variances);
+            T vSum = sum(variances);
             
             random_device rd;
             mt19937 gen(rd());
@@ -290,7 +295,7 @@ namespace pkm
         }
         
         
-        vector<uint64_t> getHashes(const rowvec& p)
+        vector<uint64_t> getHashes(const Row<T>& p)
         {
             vector<uint64_t> tmp(p.n_cols);
             vector<uint64_t> result(n_total_hash_tables, 0);
@@ -314,7 +319,7 @@ namespace pkm
         /*!
          Query for all the items in buckets and return a unique list of ID's
          */
-        vector<size_t> query(const rowvec& p)
+        vector<size_t> query(const Row<T>& p)
         {
             const vector<uint64_t> hash_values = getHashes(p);
             vector<size_t> values;
@@ -345,15 +350,15 @@ namespace pkm
         unsigned int n_total_bits;                              //!< number of hashes per table
         
         vector<vector<size_t> > hashes;
-        vector<rowvec> original_data;
-        rowvec means;
+        vector<arma::Row<T> > original_data;
+        arma::Row<T> means;
         vector<unordered_map<uint64_t,size_t> > map_hashes;
         vector<size_t> prehash;
         
         bool b_initialized;                                     //!< has the database been initialized with data
         
     private:
-        void sortIndices(const vector<double>& sortBy, vector<size_t>& indices) {
+        void sortIndices(const vector<T>& sortBy, vector<size_t>& indices) {
             for (size_t idx_i = 0; idx_i < indices.size(); ++idx_i) {
                 indices[idx_i] = idx_i;
             }
